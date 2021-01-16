@@ -1,0 +1,75 @@
+# Importing bacis libraries and grafics 
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+
+plt.style.use('seaborn-whitegrid')
+
+# Opening the data
+df = pd.read_csv('http://taanila.fi/employee.csv', encoding = 'cp1252')
+df.head()
+
+# Let's check the basic information about the database
+df.describe().round(0)
+
+# Then we want to know how many rows and columns in the database is
+df.shape
+
+# What are the unique values in the database
+for var in df:
+    print(var, pd.unique(df[var]))
+    
+#What are the names of columns?
+df.columns
+
+# Then we drop some columns that we don't in this case
+df1 = df.drop(['Attrition', 'DailyRate', 'PercentSalaryHike', 'PerformanceRating', 'RelationshipSatisfaction', 'StandardHours', 'StockOptionLevel',
+       'TotalWorkingYears', 'TrainingTimesLastYear', 'WorkLifeBalance',
+       'YearsAtCompany', 'YearsInCurrentRole', 'YearsSinceLastPromotion',
+       'YearsWithCurrManager' ], axis=1)
+
+
+#  We create a bar chart from the monthly incomes
+ax1 = df1['MonthlyIncome'].hist(bins=bins)
+
+ax1.set_xlabel('Salary')
+ax1.set_ylabel('Frequency')
+
+
+# Then we create classes from the income levels (0-2000, 2000-3000
+bins = [0, 2000, 3000, 4000, 5000, 7000, 10000, 15000, 20000]
+
+df1['IncomeClass'] = pd.cut(df1['MonthlyIncome'], bins = bins)
+
+df1
+
+# We calculate means for Enviroment and JobSatisfaction (result is not automatically dataframe, there for we use to_frame)
+df1[['EnvironmentSatisfaction', 'JobSatisfaction']].mean().to_frame('Mean').round(2)
+
+#We want to know how many per department has answered to survey
+df2 = pd.crosstab(df['Department'], 'frequency')
+
+df2.columns.name=''
+
+n = df2['frequency'].sum()
+df2['%'] = (df2['lkm']/n)*100
+
+df2.loc['Total'] = df2.sum()
+
+df2.style.format({'frequency': '{:.0f}', '%': '{:.1f} %'})
+
+#Then we create a bar chart from the departmens and how many has taken part to the survey
+
+ax2 = df2.sort_values('frequency').drop('Amount')['%'].plot.barh()
+
+# x-akselin otsikko
+ax2.set_xlabel('% vastanneista, n=' + str(n))
+
+# x-akselin prosenttilukujen ulkoasun viimeistely
+ax2.set_xticklabels(['{:.0f} %'.format(x) for x in ax1.get_xticks()])
+
+#With the help of a box plot we survey how the income is disributed between answerers
+
+sns.boxplot(data=df[['MonthlyIncome']])
+
